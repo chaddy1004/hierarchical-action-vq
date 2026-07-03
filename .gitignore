@@ -1,0 +1,12 @@
+# experiment artifacts
+videos/
+features/
+tokens/
+results/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+*.mp4
