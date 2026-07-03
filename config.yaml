@@ -1,5 +1,5 @@
 paths:
-  videos_dir: "videos"          # all <video_id>.mp4 files in here are processed
+  videos_dir: "test_videos"     # all <video_id>.mp4 files in here are processed
   narrations_pkl: "/home/chaddy/datasets/HD-EPIC/hd-epic-annotations/narrations-and-action-segments/HD_EPIC_Narrations.pkl"
   verb_classes_csv: "/home/chaddy/datasets/HD-EPIC/hd-epic-annotations/narrations-and-action-segments/HD_EPIC_verb_classes.csv"
   features_dir: "features"      # cached V-JEPA features, <video_id>.npy
@@ -7,7 +7,9 @@ paths:
   results_dir: "results"        # checkpoints, logs, plots, reports
 
 features:
-  vjepa_model: "facebook/vjepa2-vitg-fpc64-384"
+  # local self-contained snapshot (config.json + model.safetensors + video_preprocessor_config.json);
+  # loads fully offline. The HF id is facebook/vjepa2-vitg-fpc64-384.
+  vjepa_model: "/home/chaddy/weights/vjepa2-vitg-fpc64-384"
   delta_min: 10               # frames per atomic clip (non-overlapping tiling)
 
 model:

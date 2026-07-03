@@ -131,6 +131,13 @@ def build_all(cfg: dict, overwrite: bool = False) -> None:
             logger.info(f"{video_id}: cached, skipping")
             continue
 
+        if int((narrations["video_id"] == video_id).sum()) == 0:
+            logger.warning(
+                f"{video_id}: no narrations found — skipping GT "
+                f"(not an annotated HD-EPIC video?)"
+            )
+            continue
+
         meta = load_meta(features_dir, video_id)
         boundaries_sec, boundaries, labels = gt_for_video(narrations, video_id, meta)
         np.savez(
