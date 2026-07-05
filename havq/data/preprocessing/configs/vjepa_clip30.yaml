@@ -1,0 +1,14 @@
+# Preprocessing job: V-JEPA features at 30-frame clips (1 s at 30 fps),
+# non-overlapping (stride == n_clip_frame). Output cache:
+#   <features_dir>/vjepa_clip30_stride30/
+device: "cuda"
+
+paths:
+  videos_dir: "/home/chaddy/datasets/HD-EPIC/Videos"    # all <video_id>.mp4 processed
+  features_dir: "/home/chaddy/Dataset-archive/HD-EPIC"  # cache root; features in <features_dir>/<model>_clip<n>_stride<s>/
+
+# local self-contained snapshot; loads fully offline. HF id: facebook/vjepa2-vitg-fpc64-384.
+model: "vjepa"          # can be other models like Omnivore or LaVILA
+model_weight: "/home/chaddy/weights/vjepa2-vitg-fpc64-384"
+n_clip_frame: 30        # frames per atomic clip (1 s at 30 fps)
+stride: 30              # frames between clip starts (== n_clip_frame -> non-overlapping)

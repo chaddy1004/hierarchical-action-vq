@@ -1,0 +1,36 @@
+paths:
+  videos_dir: "test_videos"     # all <video_id>.mp4 files in here are processed
+  narrations_pkl: "/home/chaddy/datasets/HD-EPIC/hd-epic-annotations/narrations-and-action-segments/HD_EPIC_Narrations.pkl"
+  verb_classes_csv: "/home/chaddy/datasets/HD-EPIC/hd-epic-annotations/narrations-and-action-segments/HD_EPIC_verb_classes.csv"
+  features_dir: "/home/chaddy/datasets/HD-EPIC"      # cached V-JEPA features, <video_id>.npy
+  tokens_dir: "results/tokens"          # token streams, <video_id>.npy
+  results_dir: "results/results"        # checkpoints, logs, plots, reports
+
+features:
+  # local self-contained snapshot (config.json + model.safetensors + video_preprocessor_config.json);
+  # loads fully offline. The HF id is facebook/vjepa2-vitg-fpc64-384.
+  vjepa_model: "/home/chaddy/weights/vjepa2-vitg-fpc64-384"
+  delta_min: 10               # frames per atomic clip (non-overlapping tiling)
+
+model:
+  H: 1                        # prediction horizon in clip steps (delta token: v_t -> v_{t+H})
+  latent_dim: 64              # f_enc output dim = codebook vector dim
+  codebook_size: 256          # |K|, the atomic action vocabulary size
+  enc_hidden: [512, 256]      # f_enc MLP hidden widths
+  dec_hidden: [512, 512]      # f_dec MLP hidden widths
+
+nsvq:
+  replace_dead_codes_every: 100   # batches between dead-codebook-entry replacements
+  replacement_warmup_batches: 500 # stop replacing after this many batches (codebook settles)
+
+eval:
+  tolerances_sec: [0.5, 1.0, 2.0]   # boundary-F1 match tolerances
+  primary_tolerance_sec: 1.0        # tolerance used for baseline comparisons
+  random_trials: 200                # trials for the random-boundary baseline
+
+train:
+  batch_size: 256
+  lr: 1.0e-3
+  epochs: 100
+  seed: 0
+  val_fraction: 0.1           # held-out pair fraction for recon-MSE reporting
