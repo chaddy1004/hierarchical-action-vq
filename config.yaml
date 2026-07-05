@@ -23,6 +23,11 @@ nsvq:
   replace_dead_codes_every: 100   # batches between dead-codebook-entry replacements
   replacement_warmup_batches: 500 # stop replacing after this many batches (codebook settles)
 
+eval:
+  tolerances_sec: [0.5, 1.0, 2.0]   # boundary-F1 match tolerances
+  primary_tolerance_sec: 1.0        # tolerance used for baseline comparisons
+  random_trials: 200                # trials for the random-boundary baseline
+
 train:
   batch_size: 256
   lr: 1.0e-3
