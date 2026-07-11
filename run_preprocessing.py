@@ -20,10 +20,18 @@ def main():
     ap = argparse.ArgumentParser(description="Clip feature extraction")
     ap.add_argument("--config", default=DEFAULT_CONFIG)
     ap.add_argument("--overwrite", action="store_true", help="re-extract cached videos")
+    ap.add_argument("--shard-file", default=None,
+                     help="text file of video_ids (one per line, from make_shards.py); "
+                          "if given, only these videos are processed")
     args = ap.parse_args()
 
+    video_ids = None
+    if args.shard_file:
+        with open(args.shard_file) as f:
+            video_ids = [line.strip() for line in f if line.strip()]
+
     preprocessor = Preprocessor(load_config(args.config))
-    out_dir = preprocessor.feature_extraction(overwrite=args.overwrite)
+    out_dir = preprocessor.feature_extraction(overwrite=args.overwrite, video_ids=video_ids)
     print(f"Features cached in {out_dir}")
 
 

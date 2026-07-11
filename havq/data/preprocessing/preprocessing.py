@@ -96,9 +96,14 @@ class Preprocessor:
                 raise ValueError(f"Unknown extractor model: {model!r}")
         return self._extractor
 
-    def feature_extraction(self, overwrite: bool = False) -> str:
+    def feature_extraction(self, overwrite: bool = False, video_ids: list[str] | None = None) -> str:
         """Extract and cache clip features for every video. All settings come
-        from the config; returns the output directory."""
+        from the config; returns the output directory.
+
+        If `video_ids` is given, only those videos are processed (in the given
+        order) instead of every video in `paths.videos_dir` -- this is the hook
+        used to split a dataset into disjoint shards for parallel/cluster runs.
+        """
         model = self.config["model"]
         n_clip_frame = self.config["n_clip_frame"]
         stride = self.config["stride"]
@@ -111,6 +116,13 @@ class Preprocessor:
         video_paths = sorted(glob(os.path.join(videos_dir, "*", "*.mp4")))
         if not video_paths:
             raise FileNotFoundError(f"No .mp4 files found in {videos_dir}")
+
+        if video_ids is not None:
+            by_id = {os.path.splitext(os.path.basename(p))[0]: p for p in video_paths}
+            missing = [v for v in video_ids if v not in by_id]
+            if missing:
+                raise FileNotFoundError(f"video_ids not found under {videos_dir}: {missing}")
+            video_paths = [by_id[v] for v in video_ids]
 
         pending = []
         for video_path in video_paths:
