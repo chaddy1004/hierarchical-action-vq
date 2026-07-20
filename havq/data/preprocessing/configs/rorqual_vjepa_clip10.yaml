@@ -1,0 +1,13 @@
+# V-JEPA clip10 feature extraction on RORQUAL (Compute Canada, def-swasland-ab).
+# Scratch paths (NOT the local ones). Run via the per-shard jobs in JOBS/.
+# Output cache: <features_dir>/vjepa_clip10_stride10/<video_id>.npy (+ _meta.json).
+device: "cuda"
+
+paths:
+  videos_dir: "/lustre10/scratch/chaddy/datasets/HD-EPIC/Videos"   # <videos_dir>/P0x/*.mp4
+  features_dir: "/lustre10/scratch/chaddy/features/HD-EPIC"
+
+model: "vjepa"
+model_weight: "/lustre10/scratch/chaddy/models/vjepa2-vitg-fpc64-384"   # download_weights.py dest
+n_clip_frame: 10
+stride: 10

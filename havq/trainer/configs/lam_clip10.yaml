@@ -1,0 +1,45 @@
+# LAPA-style latent-action NSVQ ("LAM") training -- PoC.
+#
+# Encode (v_t, v_{t+H}) -> NSVQ code z; decode v_{t+H} from v_t + z. Because the
+# decoder already gets v_t, the low-capacity code z can only earn its keep by
+# carrying the *transition* (the action). Trains on all (v_t, v_{t+H}) pairs
+# pooled from the clip10 feature cache (pairs never cross a video boundary).
+#
+# KEY CHANGE vs v1: H=3 (~1 s gap at clip10's 3 clips/s) instead of v1's H=1
+# (1/3 s), which flickered because adjacent clips were near-identical. See
+# PROBE_REPORT.md for why the gap matters and the known scene-domination caveat.
+
+paths:
+  features_root: "/home/chaddy/Dataset-archive/HD-EPIC"
+  results_dir: "lam_results/clip10_H3"          # nsvq.pt + train_log.json
+  tokens_dir: "lam_results/clip10_H3/tokens"    # per-video token streams
+
+backbone: "vjepa"        # feature-cache subdir prefix (havq.utils.paths.feature_subdir)
+scale:
+  n_clip_frame: 10
+  stride: 10
+
+model:
+  H: 3                    # prediction horizon in clip steps (v_t -> v_{t+H}); 3 = ~1 s gap
+  latent_dim: 64          # f_enc output dim = codebook vector dim
+  codebook_size: 256      # |K|, the atomic action vocabulary size
+  enc_hidden: [512, 256]  # f_enc MLP hidden widths
+  dec_hidden: [512, 512]  # f_dec MLP hidden widths
+
+nsvq:
+  replace_dead_codes_every: 100     # batches between dead-codebook-entry replacements
+  replacement_warmup_batches: 2000  # stop replacing after this many batches (more data than v1 -> longer warmup)
+
+train:
+  batch_size: 256
+  lr: 1.0e-3
+  epochs: 50
+  seed: 0
+  device: "cuda"          # falls back to cpu in the trainer if unavailable
+  val_fraction: 0.2       # held-out fraction of WHOLE videos per participant (the test set)
+
+eval:                     # BPE composition + boundary-F1 (havq/analysis/bpe_eval.py)
+  primary_tolerance_sec: 1.0
+  random_trials: 200
+  num_merges: 1500        # max BPE merges (stops early if no adjacent pair recurs)
+  num_levels: 25          # granularity snapshots to score across the merge tree

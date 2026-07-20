@@ -1,0 +1,40 @@
+# Oracle probe (diagnostics, NOT the method) -- how much ACTION (verb)
+# information is decodable from a single frozen V-JEPA clip embedding v_t, and
+# how much v_t is instead dominated by scene/kitchen identity.
+#
+# This measures the CEILING any unsupervised tokenizer aims at (a supervised
+# upper bound). It answers the only real "is this direction dead" question:
+# is the action signal even present/recoverable in the features? (See the
+# discussion behind PLAN.md -- a naive-VQ failure kills an implementation, not
+# the direction; a supervised probe failing to decode verbs would kill the
+# direction.) The gap between the random-clip and held-out-video/participant
+# splits quantifies how much of the "verb signal" is really scene memorization.
+#
+# Reads cached clip features + per-clip verb labels (havq/analysis/gt.py). No
+# VQ, no tokenizer.
+
+paths:
+  features_root: "/home/chaddy/Dataset-archive/HD-EPIC"
+  narrations_pkl: "/home/chaddy/datasets/HD-EPIC/hd-epic-annotations/narrations-and-action-segments/HD_EPIC_Narrations.pkl"
+  verb_classes_csv: "/home/chaddy/datasets/HD-EPIC/hd-epic-annotations/narrations-and-action-segments/HD_EPIC_verb_classes.csv"
+  results_dir: "analysis_results/probe_clip10"
+
+model: "vjepa"                # feature-cache subdir prefix
+scale:
+  n_clip_frame: 10            # which cached scale to probe (clip10 is fully extracted)
+  stride: 10
+
+probe:
+  device: "cuda"             # falls back to cpu if the GPU is busy / low on memory
+  seed: 0
+  standardize: true          # z-score features using train-split statistics
+  batch_size: 8192
+  epochs: 40
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  mlp_hidden: 512            # hidden width of the nonlinear probe (linear probe uses none)
+  topk: [1, 5]               # verb accuracy reported at these k
+  # held-out-video split: fraction of videos (stratified by participant) held out
+  heldout_video_fraction: 0.2
+  # held-out-participant split: whole kitchens never seen in training (strictest)
+  heldout_participants: ["P06", "P07"]

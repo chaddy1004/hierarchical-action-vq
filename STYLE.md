@@ -11,7 +11,9 @@ work together. `<pkg>` = the project's package name. Living document.
 - `git init` immediately. Commit early and often — before any restructuring,
   snapshot first. Never rely on the working tree as the only copy of anything.
 - Package manager: `uv`. `pyproject.toml` at root (hatchling,
-  `packages = ["<pkg>"]`) so the package is installable from day one.
+  `[tool.hatch.build.targets.wheel] packages = ["src/<pkg>"]`) with the code
+  under `src/` (see §2) so the package installs editable from day one:
+  `uv pip install -e .`.
 - Write `PLAN.md` at the root before any code: the research goal in a few
   sentences, plus **only the immediate 1–2 experiments** with a decision gate
   for each ("if X beats baseline → proceed to …; if not → …"). Defer the long
@@ -23,20 +25,28 @@ work together. `<pkg>` = the project's package name. Living document.
 ## 2. Repo layout
 
 ```
-<pkg>/                  # the single installable package
-  configs/config.yaml   # canonical config (all hyperparameters)
-  data/
-    preprocessing/      # raw data -> cached arrays
-    dataset/            # Dataset classes / loaders
-  model/
-  trainer/
-  utils/                # config loader, shared helpers
+src/
+  <pkg>/                # the single installable package
+    configs/config.yaml # canonical config (all hyperparameters)
+    data/
+      preprocessing/    # raw data -> cached arrays
+      dataset/          # Dataset classes / loaders
+    model/
+    trainer/
+    utils/              # config loader, shared helpers
 run_<stage>.py          # thin entry scripts at repo root
 main.py                 # full-pipeline entry (when one exists)
+pyproject.toml
 PLAN.md
 archive/                # dead ends live here, not in the trash
 ```
 
+- **`src/` layout.** The package lives under `src/<pkg>/`, never loose at the
+  repo root. Install it once, editable (`uv pip install -e .`), and then
+  `import <pkg>` works from anywhere — run scripts, notebooks, tests, any CWD —
+  because it's a real installed package, not a folder that only imports when
+  you happen to be standing in the repo root. This also keeps entry scripts
+  (`run_*.py`, `main.py`) out of the importable namespace.
 - Every package dir has an `__init__.py`.
 - Entry points are thin `run_*.py` scripts at the repo root: argparse +
   `logging.basicConfig` + one call into the package. Library modules are
@@ -57,11 +67,27 @@ archive/                # dead ends live here, not in the trash
 
 ## 4. Code conventions
 
+**Simple and readable first; type hints and optimizations come later.** Write
+the plain version I can read top-to-bottom in one pass, then we iterate — don't
+drop everything on me at once.
+
 - `os.path`, **never** `pathlib`.
-- `from __future__ import annotations` + type hints on public functions.
+- **No type hints while drafting.** Plain `def f(x):` signatures. We add hints
+  once the code has settled, not before.
+- **No leading underscores on function names** — a helper is just a function
+  (one exception below).
+- **No functions defined inside functions.** Every function lives at module
+  level; a helper is its own top-level function, never nested. If you'd be
+  tempted to nest a helper inside its one caller, pull it out to module level
+  instead — and there you *may* give it a leading underscore (`_helper`) to
+  mark it as that function's private helper. The underscore is allowed only
+  for these lifted-out helpers, never in the general case.
+- **Explicit `if` / `else` blocks, stacked vertically** — never a one-line
+  conditional or ternary (`x = a if cond else b`). Write the `if:` and `else:`
+  out, one branch per block.
 - Module-level `logger = logging.getLogger(__name__)`; `logging.basicConfig`
   only in entry scripts. Progress in tight loops may use `print(..., end="\r")`.
-- Classes that do work are config-driven: `__init__(self, config: dict)`.
+- Classes that do work are config-driven: `__init__(self, config)`.
   Heavy resources (models) load lazily on first use so construction is free.
 - Every module opens with a docstring stating: what the stage does, what it
   reads, and the **exact output paths and formats** it writes.

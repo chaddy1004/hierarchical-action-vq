@@ -1,0 +1,71 @@
+# Experiment 1 -- temporal-scale + prediction-horizon scan (NO training).
+# See PLAN.md "Experiment 1". Reads cached V-JEPA features only: no VQ, no
+# training, no GPU. Cost is a few seconds of numpy.
+#
+# Question: at what setting does the FROZEN backbone actually see action
+# boundaries above chance? Two knobs set the real time gap between the two
+# feature vectors we compare:
+#     window = n_clip_frame / fps          # how much video ONE embedding pools over
+#     gap    = H * n_clip_frame / fps      # how far ahead the prediction reaches
+# v1 only ever looked at window == gap (H fixed at 1), which conflates two very
+# different failure modes:
+#     (a) "the gap is too short"  -> v_t and v_{t+H} are near-identical, so the
+#         reconstruction task is trivial and no code can carry information;
+#     (b) "the window smears the action" -> a wide clip pools a whole action (or
+#         several) into one vector, blurring the very boundary we want.
+# Crossing a clip-length sweep (H=1) with a horizon sweep (n_clip_frame fixed at
+# 10) separates these. The two controlled comparisons, each at a fixed real gap:
+#     1 s gap:  clip10_H3 (1/3 s window)  vs  clip30_H1 (1 s window)
+#     3 s gap:  clip10_H9 (1/3 s window)  vs  clip90_H1 (3 s window)
+# If the narrow-window variant wins at equal gap, the window was the problem, not
+# the gap -- and we should keep short clips and reach with H, not coarsen clips.
+
+paths:
+  narrations_pkl: "/home/chaddy/datasets/HD-EPIC/hd-epic-annotations/narrations-and-action-segments/HD_EPIC_Narrations.pkl"
+  verb_classes_csv: "/home/chaddy/datasets/HD-EPIC/hd-epic-annotations/narrations-and-action-segments/HD_EPIC_verb_classes.csv"
+  # Feature-cache root written by preprocessing. Each scan row reads the subdir
+  # <model>_clip<n_clip_frame>_stride<stride> (havq.utils.paths.feature_subdir).
+  features_root: "/home/chaddy/Dataset-archive/HD-EPIC"
+  results_dir: "exp1_results"
+
+model: "vjepa"   # feature-cache subdir prefix (must match how it was extracted)
+
+# The 3 annotated HD-EPIC test videos (a subset of the 153-video corpus). GT
+# narrations exist only for these; Exp 1 is decided on them alone.
+test_videos:
+  - "P05-20240424-090812"
+  - "P06-20240510-135423"
+  - "P09-20240625-103827"
+
+# Each row is one (clip length, horizon) point. real gap = H * n_clip_frame / fps.
+# The change score for row is 1 - cos(v_i, v_{i+H}); its cosine distribution and
+# its top-K-peaks boundary-F1-vs-random are both reported.
+#   clip10_* need only the already-extracted vjepa_clip10_stride10 cache.
+#   clip30_H1 / clip90_H1 need those caches for the 3 test videos (extract first).
+scan:
+  - name: "clip10_H1"   # 1/3 s gap, 1/3 s window   (v1's original setting)
+    n_clip_frame: 10
+    stride: 10
+    H: 1
+  - name: "clip10_H3"   # 1 s gap,   1/3 s window   (narrow snapshot, longer reach)
+    n_clip_frame: 10
+    stride: 10
+    H: 3
+  - name: "clip10_H9"   # 3 s gap,   1/3 s window
+    n_clip_frame: 10
+    stride: 10
+    H: 9
+  - name: "clip30_H1"   # 1 s gap,   1 s window     (wide snapshot)
+    n_clip_frame: 30
+    stride: 30
+    H: 1
+  - name: "clip90_H1"   # 3 s gap,   3 s window
+    n_clip_frame: 90
+    stride: 90
+    H: 1
+
+eval:
+  tolerances_sec: [0.5, 1.0, 2.0]   # boundary-match tolerances for F1 curves
+  primary_tolerance_sec: 1.0        # tolerance the vs-random verdict is read at
+  random_trials: 500                # matched-count random-boundary baseline trials
+  seed: 0

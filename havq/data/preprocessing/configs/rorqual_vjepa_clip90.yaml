@@ -1,0 +1,13 @@
+# V-JEPA clip90 feature extraction on RORQUAL. Same as rorqual_vjepa_clip10.yaml
+# but 90-frame clips (3 s at 30 fps), non-overlapping. ~1/9 the clips of clip10.
+# Output cache: <features_dir>/vjepa_clip90_stride90/<video_id>.npy (+ _meta.json).
+device: "cuda"
+
+paths:
+  videos_dir: "/lustre10/scratch/chaddy/datasets/HD-EPIC/Videos"   # <videos_dir>/P0x/*.mp4
+  features_dir: "/lustre10/scratch/chaddy/features/HD-EPIC"
+
+model: "vjepa"
+model_weight: "/lustre10/scratch/chaddy/models/vjepa2-vitg-fpc64-384"
+n_clip_frame: 90
+stride: 90
