@@ -1,0 +1,27 @@
+# LAPA latent-action tokenization at a 1-second pair gap.
+#
+# pair_gap is the ONLY temporal knob: frames are sampled every pair_gap frames and
+# paired back-to-back, so it sets both the gap the latent action spans and the
+# token rate (fps / pair_gap). HD-EPIC is 30 fps, so pair_gap 30 = a 1 s action,
+# ~1 token/second, which is also the gap LAPA's openx checkpoint was trained at.
+#
+# Outputs land in <features_dir>/lapa_clip30_stride30/ (havq.utils.paths.feature_subdir).
+
+model: "lapa"
+
+# LAQ openx checkpoint (1.4 GB). Architecture is fixed by this file, not by config
+# -- see LAPA_ARCH in havq/data/preprocessing/extractors/lapa_extractor.py.
+#   wget https://huggingface.co/latent-action-pretraining/LAPA-7B-openx/resolve/main/laq_openx.pt
+checkpoint: "/home/chaddy/weights/laq_openx.pt"
+
+pair_gap: 30        # frames between the two frames of a pair, AND between pairs
+
+paths:
+  # the 3 annotated videos live here as flat .mp4s; the full 153-video corpus is
+  # at ~/datasets/HD-EPIC/Videos/<participant>/*.mp4 (both layouts are globbed)
+  videos_dir: "test_videos"
+  features_dir: "/home/chaddy/Dataset-archive/HD-EPIC"
+
+batch_size: 64      # frame pairs per forward pass; 64 fits comfortably on a 3090
+device: "cuda"
+seed: 0

@@ -1,0 +1,24 @@
+# Bottom-up hierarchical segmentation from 0.5 s LAPA latent actions.
+# Single-video: nothing here reads a corpus. See havq/analysis/hierarchy.py.
+
+model: "lapa"
+pair_gap: 15        # must match the tokenization run that produced the cache
+
+paths:
+  features_dir: "/home/chaddy/Dataset-archive/HD-EPIC"
+  narrations_pkl: "/home/chaddy/datasets/HD-EPIC/hd-epic-annotations/narrations-and-action-segments/HD_EPIC_Narrations.pkl"
+  results_dir: "results/hierarchy"
+
+videos:
+  - "P05-20240424-090812"
+  - "P06-20240510-135423"
+  - "P09-20240625-103827"
+
+eval:
+  primary_tolerance_sec: 1.0   # boundary counts as matched within this many seconds
+  random_trials: 200           # matched-count random-boundary baseline trials
+  max_segments: 512            # coarsest level reported (finest end of the sweep)
+  num_levels: 12               # levels sampled geometrically between 2 and max_segments
+  words_per_level: 12          # k-means vocabulary size fitted per level
+
+seed: 0
