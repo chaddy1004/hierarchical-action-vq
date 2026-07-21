@@ -1,0 +1,22 @@
+# Interactive HTML view of a video's LAPA latent-action labels.
+# Reads the cache written by run_lapa_tokenize.py; writes one .html per video.
+
+model: "lapa"
+pair_gap: 15        # must match the tokenization run being visualized (0.5s tokens)
+
+paths:
+  features_dir: "/home/chaddy/Dataset-archive/HD-EPIC"
+  videos_dir: "test_videos"    # searched flat, then <participant>/<video_id>.mp4
+  out_dir: "results/viz"
+
+videos:
+  - "P05-20240424-090812"
+  - "P06-20240510-135423"
+  - "P09-20240625-103827"
+  - "sample_video_1"
+
+# Action-label counts offered in the page; switching K is instant (all precomputed).
+k_values: [4, 6, 8, 12, 16, 24]
+
+pca_dim: 20         # centered latent actions are ~20-d; 0 disables PCA
+seed: 0
