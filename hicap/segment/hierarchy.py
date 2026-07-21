@@ -107,6 +107,29 @@ def boundaries_at_level(removal_order, n_tokens, n_merges):
     return np.array([j for j in range(1, n_tokens) if j not in gone], dtype=np.int64)
 
 
+def cluster_at_k(X, removal_order, n_segments, n_clusters, seed=0):
+    """Over-segment to n_segments contiguous pieces, then group their means into
+    n_clusters labels (k-means) so a class can recur on non-adjacent segments.
+
+    Returns one cluster id per frame. This is the recurrence-aware readout of the
+    hierarchy at a matched cluster count, comparable to frame-clustering baselines
+    (k-means / TW-FINCH). n_segments > n_clusters over-segments first.
+    """
+    from sklearn.cluster import KMeans
+
+    n_tokens = len(X)
+    n_segments = int(min(max(n_segments, n_clusters), n_tokens))
+    bounds = boundaries_at_level(removal_order, n_tokens, n_tokens - n_segments)
+    edges = [0] + list(bounds) + [n_tokens]
+    means = np.stack([X[edges[i]:edges[i + 1]].mean(axis=0) for i in range(len(edges) - 1)])
+    k = int(min(n_clusters, len(means)))
+    seg_labels = KMeans(n_clusters=k, n_init=10, random_state=seed).fit_predict(means)
+    frame_labels = np.zeros(n_tokens, dtype=np.int64)
+    for seg_id in range(len(edges) - 1):
+        frame_labels[edges[seg_id]:edges[seg_id + 1]] = seg_labels[seg_id]
+    return frame_labels
+
+
 def segmentation_at_k(removal_order, n_tokens, n_segments):
     """Frame-wise segment id when the video is cut into exactly n_segments pieces.
 

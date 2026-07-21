@@ -1,0 +1,14 @@
+# Known-K unsupervised-TAS comparison on 50 Salads (hicap/eval/compare.py).
+# Every method produces C = #unique GT actions clusters per video; standard metrics.
+
+paths:
+  salads_root: "/home/chaddy/datasets/50_salads/data"
+  results_dir: "hicap/results"
+
+granularity: "groundTruth"   # GT level defining C and scored against (mid)
+linkage: "ward"
+l2_normalize: false
+oversegment_factor: 3        # ours_cluster over-segments to factor*C before grouping to C
+cluster_stride: 10           # frame subsample for kmeans/twfinch (O(T^2) distance)
+max_videos: null
+seed: 0
