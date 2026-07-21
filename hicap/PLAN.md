@@ -65,6 +65,13 @@ and one unsupervised method (e.g. a spectral/embedding-clustering TAS baseline).
   Fix boundary detection / the merge criterion before anything else; do not add
   datasets or write anything up.
 
+**VERDICT (2026-07-20): PASS.** Ward hierarchy on standard I3D features beats
+uniform AND random at every level from 2–176 segments, peak gain +0.101 (mid) /
++0.118 (verb) at 19 segments, on all 50 videos. Full result + ablation in
+`RESULT_gate.md`. Caveat: absolute F1 peaks at ~0.24 — the lever is now the
+feature/boundary signal, not the eval. (Only uniform/random baselines run so far;
+a published unsupervised-TAS baseline still owed.) Next fork listed in RESULT_gate.md.
+
 **Cost:** captioning ~50×6 min of video is the expensive part (one VLM pass);
 everything downstream is cheap CPU.
 
