@@ -1,23 +1,15 @@
-# Experiment 1 gate: agglomerative hierarchy vs uniform/random boundaries on
-# 50 Salads. See hicap/PLAN.md and hicap/eval/gate.py.
-
+derive_verb_level: true
+granularities:
+- groundTruth
+l2_normalize: false
+linkage: ward
+max_segments: 256
+max_videos: null
+min_segment_frames: 15
+num_levels: 14
 paths:
-  salads_root: "/home/chaddy/datasets/50_salads/data"   # parent of 50salads/
-  results_dir: "hicap/results"
-
-# feature-sequence segmentation
-linkage: "ward"          # ward | average
-l2_normalize: false      # unit-normalize features (cosine geometry) before merging
-
-# level sweep
-max_segments: 256        # finest level reported
-num_levels: 14           # geometric levels between 2 and max_segments
-min_segment_frames: 15   # do not report levels finer than this many frames/segment
-
-# boundary matching
-tol_sec: 1.0             # a predicted boundary matches a GT boundary within this
+  results_dir: hicap/results
+  salads_root: /home/chaddy/datasets/50_salads/data
 random_trials: 200
-
-granularities: null      # null = auto-detect all GT label dirs present
-max_videos: null         # null = all; set small for a quick smoke run
 seed: 0
+tol_sec: 1.0

@@ -58,6 +58,19 @@ def load_labels(root, video_id, granularity="groundTruth"):
         return np.array([ln.strip() for ln in f if ln.strip() != ""])
 
 
+def derive_verb_level(labels):
+    """Coarsen per-frame mid labels to their verb prefix: cut_tomato -> cut.
+
+    A reproducible coarser granularity derived purely from the mid labels (no
+    extra annotations), so the gate can test multiple levels immediately. 50
+    Salads mid classes are verb_object (cut_cheese, add_oil, place_*_into_bowl,
+    mix_dressing, serve_salad_onto_plate), so the first token is the action verb.
+    The official recipe-phase high level (from the Dundee annotations) can replace
+    this later; for the gate, verb-level is a valid second granularity.
+    """
+    return np.array([str(x).split("_")[0] for x in labels])
+
+
 def available_granularities(root):
     """Label directories present besides features/splits -- each is one GT level."""
     d = dataset_dir(root)

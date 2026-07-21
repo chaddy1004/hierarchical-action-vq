@@ -102,7 +102,9 @@ def run(cfg):
     videos = salads.list_videos(root)
     if cfg.get("max_videos"):
         videos = videos[: cfg["max_videos"]]
-    grans = cfg.get("granularities") or salads.available_granularities(root)
+    grans = list(cfg.get("granularities") or salads.available_granularities(root))
+    finest_gran = "groundTruth" if "groundTruth" in grans else grans[0]
+    report_grans = grans + (["verb"] if cfg.get("derive_verb_level") else [])
     logger.info(f"Gate on {len(videos)} videos | granularities {grans} | "
                 f"linkage={cfg['linkage']} l2={cfg['l2_normalize']} tol={cfg['tol_sec']}s")
 
@@ -110,11 +112,13 @@ def run(cfg):
     for i, vid in enumerate(videos):
         features = salads.load_features(root, vid)
         labels_by_gran = {g: salads.load_labels(root, vid, g) for g in grans}
+        if cfg.get("derive_verb_level"):
+            labels_by_gran["verb"] = salads.derive_verb_level(labels_by_gran[finest_gran])
         per_video.append(evaluate_video(features, labels_by_gran, cfg, rng))
         logger.info(f"  [{i + 1}/{len(videos)}] {vid}: {len(features)} frames")
 
     report = {"config": cfg, "granularities": {}}
-    for g in grans:
+    for g in report_grans:
         curve = aggregate(per_video, g)
         best = max(curve, key=lambda r: r["gain_vs_uniform"]) if curve else None
         report["granularities"][g] = {"curve": curve, "best_vs_uniform": best}
