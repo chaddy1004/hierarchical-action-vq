@@ -68,9 +68,16 @@ and one unsupervised method (e.g. a spectral/embedding-clustering TAS baseline).
 **VERDICT (2026-07-20): PASS.** Ward hierarchy on standard I3D features beats
 uniform AND random at every level from 2–176 segments, peak gain +0.101 (mid) /
 +0.118 (verb) at 19 segments, on all 50 videos. Full result + ablation in
-`RESULT_gate.md`. Caveat: absolute F1 peaks at ~0.24 — the lever is now the
-feature/boundary signal, not the eval. (Only uniform/random baselines run so far;
-a published unsupervised-TAS baseline still owed.) Next fork listed in RESULT_gate.md.
+`RESULT_gate.md`.
+
+**UPDATE (2026-07-21): standard metrics + real baseline (`REPORT_2026-07-21.md`).**
+Known-K comparison with standard TAS metrics (MoF/edit/F1@k) and a validated
+TW-FINCH: our plain Ward hierarchy is competitive (64.8 MoF) but does NOT beat
+TW-FINCH (67.4); it clearly beats uniform (58.7) and kmeans (52.9). K-sensitivity
+shows TW-FINCH is more fragile to K misspecification (16 vs 11 pt swing). Takeaway:
+the count-free framing is the real contribution; raw-feature segmentation quality
+is credible-not-SOTA. The wins must come from the two untouched levers — the
+VLM-caption labeling and a stronger backbone than I3D. Next steps in the report.
 
 **Cost:** captioning ~50×6 min of video is the expensive part (one VLM pass);
 everything downstream is cheap CPU.
