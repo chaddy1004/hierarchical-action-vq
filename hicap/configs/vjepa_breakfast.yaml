@@ -1,0 +1,24 @@
+# V-JEPA feature extraction for Breakfast (better-backbone experiment).
+# Paths are for Rorqual (Compute Canada). window/stride set the temporal scale.
+
+dataset: "breakfast"
+
+model_path: "/home/chaddy/scratch/models/vjepa2-vitg-fpc64-384"   # already on scratch
+device: "cuda"
+
+# clip window (frames V-JEPA pools into one vector) and stride (token rate).
+# Breakfast is 15 fps: window 64 = 4.3 s; stride 8 = ~2 tokens/s (~110 tokens for a
+# 900-frame video, a sensible resolution for ~10 actions).
+window: 64
+stride: 8
+
+paths:
+  rgb_root: "/home/chaddy/scratch/datasets/breakfast_rgb"   # <-- RGB must be downloaded here
+  out_root: "/home/chaddy/scratch/features/vjepa"           # -> vjepa/breakfast/features/<vid>.npy
+
+# where to find each video file under rgb_root (adjust to the actual RGB layout)
+rgb_globs:
+  - "*/*.avi"
+  - "*/*/*.avi"
+
+overwrite: false

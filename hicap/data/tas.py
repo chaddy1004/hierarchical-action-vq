@@ -72,6 +72,18 @@ def load_labels(root, dataset, video_id, granularity="groundTruth"):
         return np.array([ln.strip() for ln in f if ln.strip() != ""])
 
 
+def load_labels_strided(root, dataset, video_id, stride, window, n_clips, granularity="groundTruth"):
+    """Per-frame GT downsampled to clip resolution, for clip-level features
+    (e.g. V-JEPA). Clip j pools frames [j*stride, j*stride+window); we label it by
+    the class at the window centre. Returns an array of length n_clips, aligned
+    row-for-row with a clip-resolution feature sequence so the same gate/compare
+    machinery applies. `granularity` still selects the GT level.
+    """
+    labels = load_labels(root, dataset, video_id, granularity)
+    centres = np.clip(np.arange(n_clips) * stride + window // 2, 0, len(labels) - 1)
+    return labels[centres]
+
+
 def derive_verb_level(labels):
     """Coarsen per-frame labels to their verb prefix: pour_milk -> pour.
 
