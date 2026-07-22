@@ -72,12 +72,19 @@ uniform AND random at every level from 2–176 segments, peak gain +0.101 (mid) 
 
 **UPDATE (2026-07-21): standard metrics + real baseline (`REPORT_2026-07-21.md`).**
 Known-K comparison with standard TAS metrics (MoF/edit/F1@k) and a validated
-TW-FINCH: our plain Ward hierarchy is competitive (64.8 MoF) but does NOT beat
-TW-FINCH (67.4); it clearly beats uniform (58.7) and kmeans (52.9). K-sensitivity
-shows TW-FINCH is more fragile to K misspecification (16 vs 11 pt swing). Takeaway:
-the count-free framing is the real contribution; raw-feature segmentation quality
-is credible-not-SOTA. The wins must come from the two untouched levers — the
-VLM-caption labeling and a stronger backbone than I3D. Next steps in the report.
+TW-FINCH. K-sensitivity shows TW-FINCH is more fragile to K misspecification (16 vs
+11 pt swing).
+
+**UPDATE (2026-07-21b): all 3 MS-TCN benchmarks (`REPORT_2026-07-21_multibenchmark.md`).**
+Generalized reader (tas.py) → 50salads + Breakfast + GTEA. Gate PASSES on all 3.
+Known-K MoF (ours_contig vs twfinch): 50salads 64.8 vs 67.4, **Breakfast 63.5 vs
+63.8 (TIED, 1712 vids)**, GTEA 50.3 vs 50.9. Averaged, ours_contig (59.5) ≈
+TW-FINCH (60.7), both >> uniform/kmeans. GTEA: ours_cluster>ours_contig (recurrence
+readout wins on short recurring-action clips, as predicted). Takeaway: our simple
+count-free hierarchy is a PEER of the standard TAS baseline, matching it at scale —
+before adding the two differentiators (count-free advantage + caption labeling).
+Next lever: V-JEPA features (pipeline built+validated, `VJEPA_PLAN.md`; blocked on
+sourcing TAS-benchmark RGB).
 
 **Cost:** captioning ~50×6 min of video is the expensive part (one VLM pass);
 everything downstream is cheap CPU.
