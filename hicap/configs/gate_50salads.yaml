@@ -1,15 +1,28 @@
+# Experiment 1 gate: agglomerative hierarchy vs uniform/random boundaries.
+# See hicap/PLAN.md and hicap/eval/gate.py. Switch dataset with --dataset.
+
+dataset: "50salads"          # 50salads | breakfast | gtea
+
+paths:
+  data_root: "/home/chaddy/datasets/50_salads/data"   # parent of <dataset>/
+  results_dir: "hicap/results"
+
 derive_verb_level: true
 granularities:
-- groundTruth
+  - groundTruth
+
+# feature-sequence segmentation
+linkage: "ward"              # ward | average
 l2_normalize: false
-linkage: ward
+
+# level sweep
 max_segments: 256
-max_videos: null
-min_segment_frames: 15
 num_levels: 14
-paths:
-  results_dir: hicap/results
-  salads_root: /home/chaddy/datasets/50_salads/data
+min_segment_frames: 15
+
+# boundary matching
+tol_sec: 1.0                 # converted to frames via the dataset's fps
 random_trials: 200
+
+max_videos: null
 seed: 0
-tol_sec: 1.0

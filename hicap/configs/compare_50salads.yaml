@@ -1,8 +1,10 @@
 # Known-K unsupervised-TAS comparison on 50 Salads (hicap/eval/compare.py).
 # Every method produces C = #unique GT actions clusters per video; standard metrics.
 
+dataset: "50salads"          # 50salads | breakfast | gtea
+
 paths:
-  salads_root: "/home/chaddy/datasets/50_salads/data"
+  data_root: "/home/chaddy/datasets/50_salads/data"
   results_dir: "hicap/results"
 
 granularity: "groundTruth"   # GT level defining C and scored against (mid)

@@ -19,14 +19,17 @@ def main():
     parser = argparse.ArgumentParser(description="hicap count-free boundary gate on 50 Salads")
     parser.add_argument("--config", required=True)
     parser.add_argument("--max-videos", type=int, default=None, help="override: only first N videos")
-    parser.add_argument("--salads-root", default=None, help="override: parent dir of 50salads/")
+    parser.add_argument("--dataset", default=None, help="override: 50salads | breakfast | gtea")
+    parser.add_argument("--data-root", default=None, help="override: parent dir of <dataset>/")
     args = parser.parse_args()
 
     cfg = load_config(args.config)
     if args.max_videos is not None:
         cfg["max_videos"] = args.max_videos
-    if args.salads_root is not None:
-        cfg["paths"]["salads_root"] = args.salads_root
+    if args.dataset is not None:
+        cfg["dataset"] = args.dataset
+    if args.data_root is not None:
+        cfg["paths"]["data_root"] = args.data_root
     run(cfg)
 
 

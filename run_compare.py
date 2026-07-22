@@ -19,10 +19,16 @@ def main():
     parser = argparse.ArgumentParser(description="hicap known-K TAS comparison on 50 Salads")
     parser.add_argument("--config", required=True)
     parser.add_argument("--max-videos", type=int, default=None)
+    parser.add_argument("--dataset", default=None, help="override: 50salads | breakfast | gtea")
+    parser.add_argument("--data-root", default=None, help="override: parent dir of <dataset>/")
     args = parser.parse_args()
     cfg = load_config(args.config)
     if args.max_videos is not None:
         cfg["max_videos"] = args.max_videos
+    if args.dataset is not None:
+        cfg["dataset"] = args.dataset
+    if args.data_root is not None:
+        cfg["paths"]["data_root"] = args.data_root
     run(cfg)
 
 

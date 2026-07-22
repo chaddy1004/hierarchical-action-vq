@@ -27,7 +27,7 @@ import os
 
 import numpy as np
 
-from hicap.data import salads
+from hicap.data import tas
 from hicap.eval.boundary import boundary_f1, gt_boundaries, random_f1, uniform_f1
 from hicap.segment.hierarchy import boundaries_at_level, merge_order
 
@@ -42,7 +42,7 @@ def level_targets(n_frames, min_seg, max_segments, num_levels):
     return sorted({int(round(v)) for v in np.geomspace(2, top, num_levels)})
 
 
-def evaluate_video(features, labels_by_gran, cfg, rng):
+def evaluate_video(features, labels_by_gran, cfg, fps, rng):
     """Build the hierarchy once; score every level against every GT granularity."""
     n_frames = len(features)
     order = merge_order(
@@ -50,7 +50,7 @@ def evaluate_video(features, labels_by_gran, cfg, rng):
         linkage=cfg["linkage"],
         l2_normalize=cfg["l2_normalize"],
     )
-    tol = int(round(cfg["tol_sec"] * salads.FPS))
+    tol = int(round(cfg["tol_sec"] * fps))
     targets = level_targets(n_frames, cfg["min_segment_frames"], cfg["max_segments"], cfg["num_levels"])
 
     gts = {g: gt_boundaries(lab) for g, lab in labels_by_gran.items()}
@@ -94,27 +94,29 @@ def aggregate(per_video, granularity):
 
 
 def run(cfg):
-    root = cfg["paths"]["salads_root"]
+    root = cfg["paths"]["data_root"]
+    dataset = cfg["dataset"]
+    fps = tas.fps(dataset)
     results_dir = cfg["paths"]["results_dir"]
     os.makedirs(results_dir, exist_ok=True)
     rng = np.random.default_rng(cfg["seed"])
 
-    videos = salads.list_videos(root)
+    videos = tas.list_videos(root, dataset)
     if cfg.get("max_videos"):
         videos = videos[: cfg["max_videos"]]
-    grans = list(cfg.get("granularities") or salads.available_granularities(root))
+    grans = list(cfg.get("granularities") or ["groundTruth"])
     finest_gran = "groundTruth" if "groundTruth" in grans else grans[0]
     report_grans = grans + (["verb"] if cfg.get("derive_verb_level") else [])
-    logger.info(f"Gate on {len(videos)} videos | granularities {grans} | "
+    logger.info(f"Gate on {dataset}: {len(videos)} videos ({fps} fps) | granularities {grans} | "
                 f"linkage={cfg['linkage']} l2={cfg['l2_normalize']} tol={cfg['tol_sec']}s")
 
     per_video = []
     for i, vid in enumerate(videos):
-        features = salads.load_features(root, vid)
-        labels_by_gran = {g: salads.load_labels(root, vid, g) for g in grans}
+        features = tas.load_features(root, dataset, vid)
+        labels_by_gran = {g: tas.load_labels(root, dataset, vid, g) for g in grans}
         if cfg.get("derive_verb_level"):
-            labels_by_gran["verb"] = salads.derive_verb_level(labels_by_gran[finest_gran])
-        per_video.append(evaluate_video(features, labels_by_gran, cfg, rng))
+            labels_by_gran["verb"] = tas.derive_verb_level(labels_by_gran[finest_gran])
+        per_video.append(evaluate_video(features, labels_by_gran, cfg, fps, rng))
         logger.info(f"  [{i + 1}/{len(videos)}] {vid}: {len(features)} frames")
 
     report = {"config": cfg, "granularities": {}}
@@ -127,7 +129,7 @@ def run(cfg):
                         f"model {best['model_f1']:.3f} | uniform {best['uniform_f1']:.3f} "
                         f"(gain {best['gain_vs_uniform']:+.3f}) | random {best['random_f1']:.3f}")
 
-    out = os.path.join(results_dir, "gate_report.json")
+    out = os.path.join(results_dir, f"gate_report_{dataset}.json")
     with open(out, "w") as f:
         json.dump(report, f, indent=2)
     logger.info(f"Wrote {out}")

@@ -29,7 +29,7 @@ import os
 
 import numpy as np
 
-from hicap.data import salads
+from hicap.data import tas
 from hicap.eval import baselines
 from hicap.eval.tas_metrics import all_metrics
 from hicap.segment.hierarchy import cluster_at_k, merge_order, segmentation_at_k
@@ -54,19 +54,20 @@ def methods_for_video(features, n_clusters, cfg):
 
 
 def run(cfg):
-    root = cfg["paths"]["salads_root"]
+    root = cfg["paths"]["data_root"]
+    dataset = cfg["dataset"]
     results_dir = cfg["paths"]["results_dir"]
     os.makedirs(results_dir, exist_ok=True)
 
-    videos = salads.list_videos(root)
+    videos = tas.list_videos(root, dataset)
     if cfg.get("max_videos"):
         videos = videos[: cfg["max_videos"]]
-    logger.info(f"Known-K comparison on {len(videos)} videos | methods {METHODS}")
+    logger.info(f"Known-K comparison on {dataset}: {len(videos)} videos | methods {METHODS}")
 
     per_method = {m: [] for m in METHODS}
     for i, vid in enumerate(videos):
-        features = salads.load_features(root, vid)
-        gt = salads.load_labels(root, vid, cfg["granularity"])
+        features = tas.load_features(root, dataset, vid)
+        gt = tas.load_labels(root, dataset, vid, cfg["granularity"])
         n_clusters = len(set(gt.tolist()))
         preds = methods_for_video(features, n_clusters, cfg)
         for m in METHODS:
@@ -78,7 +79,7 @@ def run(cfg):
     for m in METHODS:
         report["methods"][m] = {k: float(np.mean([r[k] for r in per_method[m]])) for k in metric_keys}
 
-    out = os.path.join(results_dir, "compare_report.json")
+    out = os.path.join(results_dir, f"compare_report_{dataset}.json")
     with open(out, "w") as f:
         json.dump(report, f, indent=2)
 
